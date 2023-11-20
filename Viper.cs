@@ -57,12 +57,8 @@ public class Viper {
       var settings = File.ReadAllText(filePath);
       var deserialized = JsonSerializer.Deserialize<Dictionary<string,string>>(settings);
       foreach(var kvp in deserialized){
-        Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
-        if(this._config.ContainsKey(kvp.Key)){
-          this._config[kvp.Key] = kvp.Value;
-        }else{
-          this._config.Add(kvp.Key, kvp.Value);
-        }
+        
+        this.Set(kvp.Key, kvp.Value);
       }
     }else{
       throw new InvalidOperationException($"No json file found {filePath}");
@@ -87,11 +83,18 @@ public class Viper {
       var key = line.Substring(0, idx);
       var val = line.Substring(idx + 1);
 
-      Environment.SetEnvironmentVariable(key, val.Replace("\"", ""));
-      this._config.Add(key, val.Replace("\"", ""));
+      this.Set(key, val);
     }
   }
 
+  public void Set(string key, string value){
+    Environment.SetEnvironmentVariable(key, value);
+    if(this._config.ContainsKey(key)){
+      this._config[key] = value.Replace("\"", "");
+    }else{
+      this._config.Add(key, value.Replace("\"", ""));
+    }
+  }
   public string Get(string key){
     //look up values in the environment 
     //or appsettings.json
