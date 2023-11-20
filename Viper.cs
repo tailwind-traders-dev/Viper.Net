@@ -20,8 +20,14 @@ public class Viper {
     }
     //defaults get trampled by ENV
     this.LoadEnvFile();
-  }
 
+  }
+  public string GetEnvironment(){
+    var runtimeEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+    if(runtimeEnv == null) runtimeEnv =Environment.GetEnvironmentVariable("DOTNETCORE_ENVIRONMENT");
+    if(runtimeEnv == null) runtimeEnv = "Development";
+    return runtimeEnv;
+  }
   public string FindConfigFile(string name){
     var execDirectory = Directory.GetCurrentDirectory();
     //do we have an .ENV file here?

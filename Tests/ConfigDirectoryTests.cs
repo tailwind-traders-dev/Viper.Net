@@ -10,14 +10,14 @@ public class ConfigDirectoryTests{
   }
   [Fact]
   public void Reads_First_Setting_in_ENV_File(){
-    Assert.Equal("first", _viper.Get("one"));
+    Assert.Equal("third", _viper.Get("three"));
   }
   [Fact]
   public void Reads_Second_Setting_With_Equal_File(){
-    Assert.Equal("second", _viper.Get("two"));
+    Assert.Equal("fourth", _viper.Get("four"));
   }
   [Fact]
   public void Reads_Third_Setting_With_Line_Skip(){
-    Assert.Equal("third", _viper.Get("three"));
+    Assert.Equal("fifth", _viper.Get("five"));
   }
 }
