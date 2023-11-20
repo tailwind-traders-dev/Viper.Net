@@ -6,11 +6,10 @@ public class ConfigDirectoryTests{
   {
     _viper = new Viper();
     //get the current directory
-    _viper.LoadJson("development.json");
   }
   [Fact]
   public void Reads_First_Setting_in_ENV_File(){
-    Assert.Equal("third", _viper.Get("three"));
+    Assert.Equal("sixth", _viper.Get("six"));
   }
   [Fact]
   public void Reads_Second_Setting_With_Equal_File(){
