@@ -1,14 +1,14 @@
-## Viper.NET: Configuration Stuff Should Be Easier in .NET
+## Viper.NET: Making Environment Variables Easier in .NET
 
-This project is inspired by [The Viper project from Go land](https://github.com/spf13/viper), but it's a bit lighter in terms of what it does.
+This project is inspired by [The Viper project from Go land](https://github.com/spf13/viper), but it's a bit lighter in terms of what it does. 
 
-## Why This Project Exist?
+## Isn't This a Solved Problem?
 
-I find that getting configuration values in .NET to be ... challenging. Depending on the product/platform (Linux, Windows, etc) you'll be looking for an `appsettings.json`, `appsettings.development.json`, `App.config`, the Environment variables, `web.config` and possibly the project `Properties` if you're into that kind of thing.
+In some ways, yes. The [Microsoft Configuration docs](https://learn.microsoft.com/en-us/dotnet/core/extensions/configuration) walk you through a number of ways you can store configuration settings on disk or in memory. If you're a .NET person, this is probably easy for you to go over and use.
 
-In other platforms and frameworks, this kind of thing is solved using Environment Variables, which also store secrets for you and should NEVER be checked into source control. In Node, for example, a popular project is DotEnv, which will read and load environment variables for you at runtime.
+I'm coming back to .NET after a decade away in other realms (Node, Ruby, Go) and I find that managing secrets and settings in those platforms to be quite straightforward. Config "stuff" is typically handled by a dedicated class that works off some conventions.
 
-That's what I want to do here. If you want your settings for your environment, just create a file with the environment name and pop it in the root of your project and off we go.
+If you prefer to use a little convention, store your settings on disk and your secrets in the Environment, this library could be helpful for you.
 
 ## Using Viper
 
