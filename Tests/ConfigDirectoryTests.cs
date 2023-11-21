@@ -4,7 +4,7 @@ public class ConfigDirectoryTests{
   Viper _viper;
   public ConfigDirectoryTests()
   {
-    _viper = new Viper();
+    _viper = Viper.Config("development");
     //get the current directory
   }
   [Fact]

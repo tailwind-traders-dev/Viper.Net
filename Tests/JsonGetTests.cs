@@ -4,9 +4,7 @@ public class JsonGetTests{
   Viper _viper;
   public JsonGetTests()
   {
-    _viper = new Viper();
-    //get the current directory
-    _viper.LoadJson("settings.json");
+    _viper = Viper.Json("settings.json");
   }
   [Fact]
   public void Reads_First_Setting_in_ENV_File(){

@@ -4,7 +4,7 @@ public class EnvGetTests{
   Viper _viper;
   public EnvGetTests()
   {
-    _viper = new Viper();
+    _viper = Viper.Config();
   }
   [Fact]
   public void Reads_First_Setting_in_ENV_File(){
