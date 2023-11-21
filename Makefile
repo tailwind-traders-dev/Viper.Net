@@ -1,0 +1,2 @@
+run:
+	dotnet test

@@ -50,11 +50,41 @@ public class Viper {
   }
 
   /// <summary>
+  /// Returns the current environment using ASPNETCORE_ENVIRONMENT or DOTNETCORE_ENVIRONMENT. Defaults to Development.
+  /// </summary>
+  /// <returns></returns>
+  public static string GetEnvironment(){
+    var runtimeEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+    if(String.IsNullOrWhiteSpace(runtimeEnv)) runtimeEnv = Environment.GetEnvironmentVariable("DOTNETCORE_ENVIRONMENT");
+    if(String.IsNullOrWhiteSpace(runtimeEnv)) runtimeEnv = "development";
+    return runtimeEnv;
+  }
+
+  /// <summary>
+  /// Defaults to whatever is set in the environment. If nothing is set, it defaults to Development.
+  /// </summary>
+  /// <returns></returns>
+  public static Viper Config(){
+    var env = Viper.GetEnvironment();
+    return Config(env);
+  }
+
+  /// <summary>
+  /// Defaults to whatever is set in the environment or the defaults you pass in. If nothing is set, it defaults to Development.
+  /// </summary>
+  /// <param name="defaults"></param>
+  /// <returns></returns>
+  public static Viper Config(Dictionary<string,string> defaults){
+    var env = Viper.GetEnvironment();
+    return Config(env, defaults);
+  }
+
+  /// <summary>
   /// Read the configuration from the environment or any JSON file with the name of the environment. You can put the JSON file in the root of the project, in a config directory, or in the current directory.
   /// </summary>
   /// <param name="env">Name of environment you want to load</param>
   /// <returns>Viper instance</returns>
-  public static Viper Config(string env = "development"){
+  public static Viper Config(string env ){
     SentEnv(env);
     return Config(env, null);
   }
@@ -81,6 +111,7 @@ public class Viper {
     viper.Env = env;
     if(defaults != null){
       foreach(var kvp in defaults){
+        Console.WriteLine($"Setting default {kvp.Key} to {kvp.Value}");
         viper.Set(kvp.Key, kvp.Value);
       }
     }
@@ -90,16 +121,6 @@ public class Viper {
     return viper;
   }
 
-  /// <summary>
-  /// Returns the current environment using ASPNETCORE_ENVIRONMENT or DOTNETCORE_ENVIRONMENT. Defaults to Development.
-  /// </summary>
-  /// <returns></returns>
-  public string GetEnvironment(){
-    var runtimeEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-    if(String.IsNullOrWhiteSpace(runtimeEnv)) runtimeEnv = Environment.GetEnvironmentVariable("DOTNETCORE_ENVIRONMENT");
-    if(String.IsNullOrWhiteSpace(runtimeEnv)) runtimeEnv = "development";
-    return runtimeEnv;
-  }
 
   /// <summary>
   /// Locates the specified configuration file in the current directory, the project root, or the config directory.
@@ -139,7 +160,6 @@ public class Viper {
       var settings = File.ReadAllText(filePath);
       var deserialized = JsonSerializer.Deserialize<Dictionary<string,string>>(settings);
       foreach(var kvp in deserialized){
-        
         this.Set(kvp.Key, kvp.Value);
       }
     }else{
@@ -182,6 +202,7 @@ public class Viper {
   public void Set(string key, string value){
     Environment.SetEnvironmentVariable(key, value);
     if(this._config.ContainsKey(key)){
+      Console.WriteLine($"Overwriting {key} with {value}");
       this._config[key] = value.Replace("\"", "");
     }else{
       this._config.Add(key, value.Replace("\"", ""));
