@@ -2,18 +2,25 @@
 //https://github.com/spf13/viper
 using System;  
 using System.Text.Json;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 
 public class Viper {
   Dictionary<string,string> _config = new Dictionary<string,string>();
-  
+  public string Env { get; set; } = "development";
   //force the use of factory methods
   private Viper(){}
 
+  static void SentEnv(string env = "development"){
+    Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", env);
+    Environment.SetEnvironmentVariable("DOTNETCORE_ENVIRONMENT", env);
+  }
   /// <summary>
   /// Returns the development configuration
   /// </summary>
   /// <returns>Viper instance</returns>
   public static Viper Development(){
+    SentEnv("development");
     return Config("development");
   }
   /// <summary>
@@ -21,6 +28,7 @@ public class Viper {
   /// </summary>
   /// <returns>Viper instance</returns>
   public static Viper Production(){
+    SentEnv("production");
     return Config("production");
   }
   /// <summary>
@@ -28,6 +36,7 @@ public class Viper {
   /// </summary>
   /// <returns>Viper instance</returns>
   public static Viper Staging(){
+    SentEnv("staging");
     return Config("staging");
   }
   
@@ -36,6 +45,7 @@ public class Viper {
   /// </summary>
   /// <returns>Viper instance</returns>
   public static Viper Test(){
+    SentEnv("test");
     return Config("test");
   }
 
@@ -45,6 +55,7 @@ public class Viper {
   /// <param name="env">Name of environment you want to load</param>
   /// <returns>Viper instance</returns>
   public static Viper Config(string env = "development"){
+    SentEnv(env);
     return Config(env, null);
   }
 
@@ -67,7 +78,7 @@ public class Viper {
   /// <returns>Viper instance</returns>
   public static Viper Config(string env, Dictionary<string,string> defaults){
     var viper = new Viper();
-
+    viper.Env = env;
     if(defaults != null){
       foreach(var kvp in defaults){
         viper.Set(kvp.Key, kvp.Value);
@@ -85,8 +96,8 @@ public class Viper {
   /// <returns></returns>
   public string GetEnvironment(){
     var runtimeEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-    if(runtimeEnv == null) runtimeEnv =Environment.GetEnvironmentVariable("DOTNETCORE_ENVIRONMENT");
-    if(runtimeEnv == null) runtimeEnv = "development";
+    if(String.IsNullOrWhiteSpace(runtimeEnv)) runtimeEnv = Environment.GetEnvironmentVariable("DOTNETCORE_ENVIRONMENT");
+    if(String.IsNullOrWhiteSpace(runtimeEnv)) runtimeEnv = "development";
     return runtimeEnv;
   }
 
@@ -132,7 +143,9 @@ public class Viper {
         this.Set(kvp.Key, kvp.Value);
       }
     }else{
-      throw new InvalidOperationException($"No json file found {filePath}");
+      //no throw here just warn
+      Console.WriteLine($"No json file found {filePath}");
+      //throw new InvalidOperationException($"No json file found {filePath}");
     }
   }
   /// <summary>
@@ -189,5 +202,25 @@ public class Viper {
     }
 
     return null;
+  }
+
+  public string? FromVault(string key){
+    //we need to have a vault name in the environment
+    //HACK: I don't like using a property here but there seems to be a weird race condition
+    //with the set environment stuff
+    if(this.Env != "production"){
+      //TODO: do we want this guard here? I kind of think we do
+      throw new InvalidOperationException("You can only use Azure Key Vault in production");
+    }
+    var vaultName= Get("KEY_VAULT_NAME");
+    if(String.IsNullOrEmpty(vaultName)) throw new InvalidOperationException("You must set the KEY_VAULT_NAME in your config using .env or a settings file to use Azure Key Vault");
+
+    var kvUri = $"https://{vaultName}.vault.azure.net";
+
+    //HACK: how do we get the credentials in here?
+    var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
+    var value = client.GetSecret(key);
+    if(value == null) return null;
+    return value.ToString();
   }
 }
