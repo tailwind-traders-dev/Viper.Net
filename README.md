@@ -53,3 +53,32 @@ _viper.Get("DATABASE_URL"); //careful now!
 ## Setting Defaults
 
 Sometimes it's useful to set defaults for configuration, with a CLI, for instance. You can do this with the following override:
+
+```csharp
+_viper = Viper.Config(new Dictionary<string, string>(){
+  {"one", "first"},
+  {"two", "second"},
+  {"six", "overwrite me"}
+});
+```
+
+Here we're making sure the default values exist before loading the rest of the config from `.env` and `development.json`, which is the default configuration. You can do all of this manually, if you want, for a given environment:
+
+```csharp
+_viper = Viper.Config("test", new Dictionary<string, string>(){
+  {"one", "first"},
+  {"two", "second"},
+  {"six", "overwrite me"}
+});
+```
+
+## Key Vault Integration
+
+I'm working on this right now, but it's slow and more than a bit buggy. Hopefully will have a way to read these values in sometime soon!
+
+
+## Questions?
+
+I know most of .NET does things using what's provided from the platform. The rest of the world, however, uses Environment variables and config files. Hopefully this can help you and your projects!
+
+Always happy for a PR if you want.
