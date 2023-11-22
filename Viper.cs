@@ -4,6 +4,7 @@ using System;
 using System.Text.Json;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using Microsoft.Extensions.Configuration;
 
 public class Viper {
   Dictionary<string,string> _config = new Dictionary<string,string>();
@@ -12,6 +13,7 @@ public class Viper {
   private Viper(){}
 
   static void SentEnv(string env = "development"){
+    Console.WriteLine("Setting environment to " + env);
     Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", env);
     Environment.SetEnvironmentVariable("DOTNETCORE_ENVIRONMENT", env);
   }
@@ -222,6 +224,11 @@ public class Viper {
       return _config[key];
     }
 
+    //look in the environment
+    var envValue = Environment.GetEnvironmentVariable(key);
+    if(!String.IsNullOrWhiteSpace(envValue)){
+      return envValue;
+    }
     return null;
   }
 

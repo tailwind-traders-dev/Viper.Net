@@ -5,6 +5,19 @@ public class EnvGetTests{
   public EnvGetTests()
   {
     _viper = Viper.Config();
+    Environment.SetEnvironmentVariable("zzzz", "TEST");
+    
+  }
+
+  [Fact]
+  public void Env_vals_can_be_set_and_read(){
+    var val = Environment.GetEnvironmentVariable("zzzz");
+    Assert.Equal("TEST", val);
+  }
+  [Fact]
+  public void Env_vals_can_be_read_using_Get(){
+    var val = _viper.Get("zzzz");
+    Assert.Equal("TEST", val);
   }
   [Fact]
   public void Reads_First_Setting_in_ENV_File(){
