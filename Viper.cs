@@ -7,13 +7,16 @@ using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
 
 public class Viper {
-  Dictionary<string,string> _config = new Dictionary<string,string>();
+  //Dictionary<string,string> _config = new Dictionary<string,string>();
+  
+  //IConfiguration _config;
+  public IConfiguration Settings { get; set; }
   public string Env { get; set; } = "development";
   //force the use of factory methods
   private Viper(){}
 
   static void SentEnv(string env = "development"){
-    Console.WriteLine("Setting environment to " + env);
+    //Console.WriteLine("Setting environment to " + env);
     Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", env);
     Environment.SetEnvironmentVariable("DOTNETCORE_ENVIRONMENT", env);
   }
@@ -76,7 +79,7 @@ public class Viper {
   /// </summary>
   /// <param name="defaults"></param>
   /// <returns></returns>
-  public static Viper Config(Dictionary<string,string> defaults){
+  public static Viper Config(IEnumerable<KeyValuePair<string,string?>> defaults){
     var env = Viper.GetEnvironment();
     return Config(env, defaults);
   }
@@ -96,11 +99,11 @@ public class Viper {
   /// </summary>
   /// <param name="fileName"></param>
   /// <returns></returns>
-  public static Viper Json(string fileName){
-    var viper = new Viper();
-    viper.LoadJson(fileName);
-    return viper;
-  }
+  // public static Viper Json(string fileName){
+  //   var viper = new Viper();
+  //   viper.LoadJson(fileName);
+  //   return viper;
+  // }
 
   /// <summary>
   /// Read the configuration from the environment or any JSON file with the name of the environment. You can put the JSON file in the root of the project, in a config directory, or in the current directory. You can also pass in a dictionary of default values.
@@ -108,18 +111,28 @@ public class Viper {
   /// <param name="env">Name of environment you want to load</param>
   /// <param name="defaults">Dictionary of default values</param>
   /// <returns>Viper instance</returns>
-  public static Viper Config(string env, Dictionary<string,string> defaults){
+  public static Viper Config(string env, IEnumerable<KeyValuePair<string,string?>> defaults){
     var viper = new Viper();
     viper.Env = env;
+    var _builder = new ConfigurationBuilder();
+    _builder
+      .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+      .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
+      .AddJsonFile($"{env}.json", optional: true, reloadOnChange: true);
+
     if(defaults != null){
-      foreach(var kvp in defaults){
-        Console.WriteLine($"Setting default {kvp.Key} to {kvp.Value}");
-        viper.Set(kvp.Key, kvp.Value);
-      }
+      _builder.AddInMemoryCollection(defaults);
+      // foreach(var kvp in defaults){
+      //   Console.WriteLine($"Setting default {kvp.Key} to {kvp.Value}");
+      //   //viper.Set(kvp.Key, kvp.Value);
+      // }
     }
 
+    //add stuff to ENV
     viper.LoadEnvFile();
-    viper.LoadJson($"{env}.json");
+    _builder.AddEnvironmentVariables();
+    //viper.LoadJson($"{env}.json");
+    viper.Settings = _builder.Build();
     return viper;
   }
 
@@ -153,23 +166,23 @@ public class Viper {
   /// </summary>
   /// <param name="jsonFile">The name of the file to load</param>
   /// <exception cref="InvalidOperationException"></exception>
-  public void LoadJson(string jsonFile)
-  {
-    string filePath = this.FindConfigFile(jsonFile);
-    //find the appsettings file
-    if(File.Exists(filePath)){
-      //Console.WriteLine("Loading appsettings.json");
-      var settings = File.ReadAllText(filePath);
-      var deserialized = JsonSerializer.Deserialize<Dictionary<string,string>>(settings);
-      foreach(var kvp in deserialized){
-        this.Set(kvp.Key, kvp.Value);
-      }
-    }else{
-      //no throw here just warn
-      Console.WriteLine($"No json file found {filePath}");
-      //throw new InvalidOperationException($"No json file found {filePath}");
-    }
-  }
+  // public void LoadJson(string jsonFile)
+  // {
+  //   string filePath = this.FindConfigFile(jsonFile);
+  //   //find the appsettings file
+  //   if(File.Exists(filePath)){
+  //     //Console.WriteLine("Loading appsettings.json");
+  //     var settings = File.ReadAllText(filePath);
+  //     var deserialized = JsonSerializer.Deserialize<Dictionary<string,string>>(settings);
+  //     foreach(var kvp in deserialized){
+  //       this.Set(kvp.Key, kvp.Value);
+  //     }
+  //   }else{
+  //     //no throw here just warn
+  //     Console.WriteLine($"No json file found {filePath}");
+  //     //throw new InvalidOperationException($"No json file found {filePath}");
+  //   }
+  // }
   /// <summary>
   /// Reads in a .env file and loads the values into the configuration. Best to put the .env file in the root of the project.
   /// </summary>
@@ -191,8 +204,8 @@ public class Viper {
       //var parts = line.Split('=',StringSplitOptions.RemoveEmptyEntries);
       var key = line.Substring(0, idx);
       var val = line.Substring(idx + 1);
-
-      this.Set(key, val);
+      Environment.SetEnvironmentVariable(key, val);
+      //this.Set(key, val);
     }
   }
 
@@ -201,15 +214,15 @@ public class Viper {
   /// </summary>
   /// <param name="key"></param>
   /// <param name="value"></param>
-  public void Set(string key, string value){
-    Environment.SetEnvironmentVariable(key, value);
-    if(this._config.ContainsKey(key)){
-      Console.WriteLine($"Overwriting {key} with {value}");
-      this._config[key] = value.Replace("\"", "");
-    }else{
-      this._config.Add(key, value.Replace("\"", ""));
-    }
-  }
+  // public void Set(string key, string value){
+  //   Environment.SetEnvironmentVariable(key, value);
+  //   if(this._config.ContainsKey(key)){
+  //     Console.WriteLine($"Overwriting {key} with {value}");
+  //     this._config[key] = value.Replace("\"", "");
+  //   }else{
+  //     this._config.Add(key, value.Replace("\"", ""));
+  //   }
+  // }
   /// <summary>
   /// Looks up a configuration value from whatever stores were loaded. If the value is not found, null is returned.
   /// </summary>
@@ -220,10 +233,12 @@ public class Viper {
     //or appsettings.json
     //GitHub Secrets?
     //or Azure Key Vault
-    if(_config.ContainsKey(key)){
-      return _config[key];
+    // if(_config.ContainsKey(key)){
+    //   return _config[key];
+    // }
+    if(this.Settings[key] != null){
+      return this.Settings[key];
     }
-
     //look in the environment
     var envValue = Environment.GetEnvironmentVariable(key);
     if(!String.IsNullOrWhiteSpace(envValue)){

@@ -4,7 +4,7 @@ public class JsonGetTests{
   Viper _viper;
   public JsonGetTests()
   {
-    _viper = Viper.Json("settings.json");
+    _viper = Viper.Config();
   }
   [Fact]
   public void Reads_First_Setting_in_ENV_File(){
