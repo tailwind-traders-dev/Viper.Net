@@ -6,9 +6,9 @@ This project is inspired by [The Viper project from Go land](https://github.com/
 
 In some ways, yes. The [Microsoft Configuration docs](https://learn.microsoft.com/en-us/dotnet/core/extensions/configuration) walk you through a number of ways you can store configuration settings on disk or in memory. If you're a .NET person, this is probably easy for you to go over and use.
 
-I'm coming back to .NET after a decade away in other realms (Node, Ruby, Go) and I find that managing secrets and settings in those platforms to be quite straightforward. Config "stuff" is typically handled by a dedicated class that works off some conventions.
+The place where Viper fits is having just a little more control and clarity over your app's settings and secrets. 
 
-If you prefer to use a little convention, store your settings on disk and your secrets in the Environment, this library could be helpful for you.
+For instance: Viper will read a `.env` file off disk and load that into server memory as environment variables, in the same way DotEnv does for Node. You can also ensure that your production, development, and staging settings are correct by using named files.
 
 ## Using Viper
 
