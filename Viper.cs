@@ -8,6 +8,10 @@ using Microsoft.Extensions.Configuration;
 
 public class Viper {
   Dictionary<string,string> _config = new Dictionary<string,string>();
+
+  public Dictionary<string,string> Settings = new Dictionary<string,string>();
+  public Dictionary<string,string> Secrets = new Dictionary<string,string>();
+
   public string Env { get; set; } = "development";
   //force the use of factory methods
   private Viper(){}
@@ -117,7 +121,7 @@ public class Viper {
         viper.Set(kvp.Key, kvp.Value);
       }
     }
-
+    
     viper.LoadEnvFile();
     viper.LoadJson($"{env}.json");
     return viper;
@@ -190,7 +194,15 @@ public class Viper {
       if(idx <= 0) continue; //empty line skip it
       //var parts = line.Split('=',StringSplitOptions.RemoveEmptyEntries);
       var key = line.Substring(0, idx);
-      var val = line.Substring(idx + 1);
+      var val = line.Substring(idx + 1);  
+      
+      Environment.SetEnvironmentVariable(key, val);
+      if(this.Secrets.ContainsKey(key)){
+        Console.WriteLine($"Overwriting {key} with {val}");
+        this.Secrets[key] = val.Replace("\"", "");
+      }else{
+        this.Secrets.Add(key, val.Replace("\"", ""));
+      }
 
       this.Set(key, val);
     }
@@ -203,6 +215,7 @@ public class Viper {
   /// <param name="value"></param>
   public void Set(string key, string value){
     Environment.SetEnvironmentVariable(key, value);
+
     if(this._config.ContainsKey(key)){
       Console.WriteLine($"Overwriting {key} with {value}");
       this._config[key] = value.Replace("\"", "");
