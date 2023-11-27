@@ -1,6 +1,7 @@
 //a configuration helper that's modeled after 
 //https://github.com/spf13/viper
-using System;  
+using System;
+using System.Reflection;
 using System.Text.Json;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
@@ -11,6 +12,7 @@ public class Viper {
   
   //IConfiguration _config;
   public IConfiguration Settings { get; set; }
+  public Dictionary<string,string> Secrets { get; set; } = new Dictionary<string,string>();
   public string Env { get; set; } = "development";
   //force the use of factory methods
   private Viper(){}
@@ -115,24 +117,34 @@ public class Viper {
     var viper = new Viper();
     viper.Env = env;
     var _builder = new ConfigurationBuilder();
-    _builder
-      .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-      .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
-      .AddJsonFile($"{env}.json", optional: true, reloadOnChange: true);
 
-    if(defaults != null){
-      _builder.AddInMemoryCollection(defaults);
-      // foreach(var kvp in defaults){
-      //   Console.WriteLine($"Setting default {kvp.Key} to {kvp.Value}");
-      //   //viper.Set(kvp.Key, kvp.Value);
-      // }
-    }
+    if(defaults != null) _builder.AddInMemoryCollection(defaults);
+
+    var settingsFile = viper.FindConfigFile($"appsettings.json");
+    var envSettings = viper.FindConfigFile($"{env}.json");
+    var envAppSettings = viper.FindConfigFile($"appsettings.{env}.json");
+    
+    //add the appsettings.json file if it exists
+    if(settingsFile != null) _builder.AddJsonFile(settingsFile);
+    if(envSettings != null) _builder.AddJsonFile(envSettings);
+    if(envAppSettings != null) _builder.AddJsonFile(envAppSettings);
+      // .AddJsonFile(envSettings, optional: true, reloadOnChange: true)
+      // .AddJsonFile(envAppSettings, optional: true, reloadOnChange: true);
+
+
+
+
 
     //add stuff to ENV
     viper.LoadEnvFile();
+
+    //add any secrets on in ENV
+    _builder.AddUserSecrets(Assembly.GetExecutingAssembly(),true);
+
     _builder.AddEnvironmentVariables();
     //viper.LoadJson($"{env}.json");
     viper.Settings = _builder.Build();
+
     return viper;
   }
 
@@ -204,25 +216,12 @@ public class Viper {
       //var parts = line.Split('=',StringSplitOptions.RemoveEmptyEntries);
       var key = line.Substring(0, idx);
       var val = line.Substring(idx + 1);
+      this.Secrets.Add(key, val);
       Environment.SetEnvironmentVariable(key, val);
       //this.Set(key, val);
     }
   }
 
-  /// <summary>
-  /// Sets a configuration value in the environment as well as config settings internally. If the value already exists, it will be overwritten.
-  /// </summary>
-  /// <param name="key"></param>
-  /// <param name="value"></param>
-  // public void Set(string key, string value){
-  //   Environment.SetEnvironmentVariable(key, value);
-  //   if(this._config.ContainsKey(key)){
-  //     Console.WriteLine($"Overwriting {key} with {value}");
-  //     this._config[key] = value.Replace("\"", "");
-  //   }else{
-  //     this._config.Add(key, value.Replace("\"", ""));
-  //   }
-  // }
   /// <summary>
   /// Looks up a configuration value from whatever stores were loaded. If the value is not found, null is returned.
   /// </summary>
@@ -237,7 +236,8 @@ public class Viper {
     //   return _config[key];
     // }
     if(this.Settings[key] != null){
-      return this.Settings[key];
+      //strip off quotes which are added by the ENV reader for some reason
+      return this.Settings[key].Replace("\"", "");
     }
     //look in the environment
     var envValue = Environment.GetEnvironmentVariable(key);
