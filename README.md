@@ -1,38 +1,41 @@
-## Viper.NET: Making Environment Variables Easier in .NET
+## Viper.NET: A Simple Wrapper for IConfig
 
-This project is inspired by [The Viper project from Go land](https://github.com/spf13/viper), but it's a bit lighter in terms of what it does. 
-
-## Isn't This a Solved Problem?
-
-In some ways, yes. The [Microsoft Configuration docs](https://learn.microsoft.com/en-us/dotnet/core/extensions/configuration) walk you through a number of ways you can store configuration settings on disk or in memory. If you're a .NET person, this is probably easy for you to go over and use.
-
-The place where Viper fits is having just a little more control and clarity over your app's settings and secrets. 
-
-For instance: Viper will read a `.env` file off disk and load that into server memory as environment variables, in the same way DotEnv does for Node. You can also ensure that your production, development, and staging settings are correct by using named files.
+This project is inspired by [The Viper project from Go land](https://github.com/spf13/viper), but it's a bit lighter in terms of what it does and, hopefully, allows you to work with environment variables in a more straightforward way. Eventually we're hoping to wrap Azure Key Vault and GitHub secrets too.
 
 ## Using Viper
 
-The simplest thing to do is to create a `/config` directory and then `development.json`. Name it whatever you want - it should correspond to the environment that you're in, which in the .NET world is either `ASPNETCORE_ENVIRONMENT` or `DOTNETCORE_ENVIRONMENT`.
+Viper is simply a wrapper for the `ConfigurationBuilder` in .NET. It has a convenience method, `Get()`, that will do its best to find the thing you're looking for, whether its in your app's settings, secrets, or the environment.
 
-If you want to load secrets, use a `.env` file in the root of your project (or in the `/config`) directory and off you go.
+You can also access `Settings` directly if you need. But there's more!
+
+### Adding some convention
+
+If you're coming from places other than .NET land, you might be used to storing your configuration in a `/configuration` directory using something like `development.json`, `product.json`, or `test.json`. You might also expect certain runtime environment variables to be set for you by the runtime itself.
+
+.NET doesn't work this way. If you want a runtime environment variable set, you need to do it yourself. For instance:  `ASPNETCORE_ENVIRONMENT` or `DOTNETCORE_ENVIRONMENT` are conventional, but not enforced by .NET. This is primarily because environment variables on Windows can be tricky business.
+
+If you're using .NET Core on Linux, however, environment variables are the way to go. Viper lets you embrace these things with (hopefully) very little work on your part.
+
+## Secrets vs. Settings
+
+It's important to understand that secrets **should never be checked into source control!**. If you add connection strings or passwords to a file ending in `.json` you might be getting yourself into trouble.
+
+.NET Core gives you access to `dotnet secrets`, which is a key/value store that stores secrets for you. You can use that directly if you like, and Viper will work just fine because `IConfig` is the backing store for everything.
+
+If, however, you want to use environment variables, you can do that too! You can use a `.env` file in the root of your project (or in the `/config`) directory and off you go:
+
+```sh
+DATABASE_URL="postgres://me:password@localhost/my-db"
+```
+
+If that exists in a .env file in your project root, Viper will find it and load it for you and you can access it immediately using `Viper.Get("DATABASE_URL")` once you load things up:
 
 ```csharp
 var _viper = Viper.Config(); //defaults to current environment from ASPNETCORE_ENVIRONMENT or DOTNETCORE_ENVIRONMENT
-var setting = _viper.Get("SOME_KEY");
+var setting = _viper.Get("DATABASE_URL");
 ```
 
 When Viper loads up, it sets an internal settings dictionary to the keys and values it finds in the `.env` file as well as any JSON file you have on disk. To get those, you use `Get(key)` and off you go.
-
-## Setting Things
-
-You can also override whatever Viper has set by using `Set(key, val)`:
-
-```csharp
-var _viper = Viper.Config(); //defaults to current environment from ASPNETCORE_ENVIRONMENT or DOTNETCORE_ENVIRONMENT
-_viper.Set("SOME_KEY", "my value");
-```
-
-The `Set()` method will also set the environment variable on the system.
 
 ## Development, Production, Test, Staging
 
