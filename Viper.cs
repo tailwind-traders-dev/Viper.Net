@@ -96,16 +96,6 @@ public class Viper {
     return Config(env, null);
   }
 
-  /// <summary>
-  /// Loads only a JSON file. You can put the JSON file in the root of the project, in a config directory, or in the current directory.
-  /// </summary>
-  /// <param name="fileName"></param>
-  /// <returns></returns>
-  // public static Viper Json(string fileName){
-  //   var viper = new Viper();
-  //   viper.LoadJson(fileName);
-  //   return viper;
-  // }
 
   /// <summary>
   /// Read the configuration from the environment or any JSON file with the name of the environment. You can put the JSON file in the root of the project, in a config directory, or in the current directory. You can also pass in a dictionary of default values.
@@ -128,12 +118,6 @@ public class Viper {
     if(settingsFile != null) _builder.AddJsonFile(settingsFile);
     if(envSettings != null) _builder.AddJsonFile(envSettings);
     if(envAppSettings != null) _builder.AddJsonFile(envAppSettings);
-      // .AddJsonFile(envSettings, optional: true, reloadOnChange: true)
-      // .AddJsonFile(envAppSettings, optional: true, reloadOnChange: true);
-
-
-
-
 
     //add stuff to ENV
     viper.LoadEnvFile();
@@ -142,7 +126,7 @@ public class Viper {
     _builder.AddUserSecrets(Assembly.GetExecutingAssembly(),true);
 
     _builder.AddEnvironmentVariables();
-    //viper.LoadJson($"{env}.json");
+
     viper.Settings = _builder.Build();
 
     return viper;
@@ -172,29 +156,6 @@ public class Viper {
     return null;
   }
 
-  //load up a JSON file
-  /// <summary>
-  /// Reads in a JSON file and loads the values into the configuration.
-  /// </summary>
-  /// <param name="jsonFile">The name of the file to load</param>
-  /// <exception cref="InvalidOperationException"></exception>
-  // public void LoadJson(string jsonFile)
-  // {
-  //   string filePath = this.FindConfigFile(jsonFile);
-  //   //find the appsettings file
-  //   if(File.Exists(filePath)){
-  //     //Console.WriteLine("Loading appsettings.json");
-  //     var settings = File.ReadAllText(filePath);
-  //     var deserialized = JsonSerializer.Deserialize<Dictionary<string,string>>(settings);
-  //     foreach(var kvp in deserialized){
-  //       this.Set(kvp.Key, kvp.Value);
-  //     }
-  //   }else{
-  //     //no throw here just warn
-  //     Console.WriteLine($"No json file found {filePath}");
-  //     //throw new InvalidOperationException($"No json file found {filePath}");
-  //   }
-  // }
   /// <summary>
   /// Reads in a .env file and loads the values into the configuration. Best to put the .env file in the root of the project.
   /// </summary>
