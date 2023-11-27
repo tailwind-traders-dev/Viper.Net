@@ -2,6 +2,14 @@
 
 This project is inspired by [The Viper project from Go land](https://github.com/spf13/viper), but it's a bit lighter in terms of what it does and, hopefully, allows you to work with environment variables in a more straightforward way. Eventually we're hoping to wrap Azure Key Vault and GitHub secrets too.
 
+## Installation
+
+You can use NuGet for this:
+
+```
+dotnet add package Viper.NET
+```
+
 ## Using Viper
 
 Viper is simply a wrapper for the `ConfigurationBuilder` in .NET. It has a convenience method, `Get()`, that will do its best to find the thing you're looking for, whether its in your app's settings, secrets, or the environment.
