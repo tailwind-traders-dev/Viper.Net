@@ -6,11 +6,11 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Authors>Rob Conery, Aaron Wislang</Authors>
     <PackageId>Viper.NET</PackageId>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>e0c5ff49-bd38-47fd-91f1-e581b4b77442</UserSecretsId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Description>This project is inspired by The Viper project from Go land, but it's a bit lighter in terms of what it does and, hopefully, allows you to work with environment variables in a more straightforward way.    </Description>
     <Title>Viper.NET</Title>
     <PackageProjectUrl>https://github.com/tailwind-traders-dev/Viper.Net</PackageProjectUrl>

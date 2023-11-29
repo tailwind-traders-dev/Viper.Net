@@ -212,6 +212,7 @@ public class Viper {
     //we need to have a vault name in the environment
     //HACK: I don't like using a property here but there seems to be a weird race condition
     //with the set environment stuff
+    
     if(this.Env != "production"){
       //TODO: do we want this guard here? I kind of think we do
       throw new InvalidOperationException("You can only use Azure Key Vault in production");
@@ -223,8 +224,13 @@ public class Viper {
 
     //HACK: how do we get the credentials in here?
     var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
-    var value = client.GetSecret(key);
-    if(value == null) return null;
-    return value.ToString();
+    KeyVaultSecret secret;
+    try{
+      secret = client.GetSecret(key);
+    }catch(Azure.RequestFailedException ex){
+      Console.WriteLine("No secret with that key found in the vault");
+      return null;
+    }
+    return secret.Value;
   }
 }
